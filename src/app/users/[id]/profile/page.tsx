@@ -395,10 +395,18 @@ export default function UserProfilePage() {
         .profile-info-text {
           text-align: left;
         }
-        .profile-info-text h4 {
-          margin-bottom: 4px;
-        }
-        .profile-info-text p {
+          .profile-info-text h4 {
+            margin-bottom: 4px;
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+          }
+          @media (max-width: 576px) {
+            .profile-info-text h4 {
+              justify-content: center;
+            }
+          }
+          .profile-info-text p {
           margin-bottom: 2px;
         }
         @media (max-width: 576px) {
@@ -414,22 +422,25 @@ export default function UserProfilePage() {
           color: #1DA1F2;
           font-size: 18px;
         }
-        .follow-stats {
-          display: flex;
-          gap: 16px;
-          margin-top: 8px;
-        }
-        .follow-stat {
-          display: flex;
-          gap: 4px;
-        }
-        .follow-stat-count {
-          font-weight: 600;
-        }
-        .follow-stat-label {
-          color: var(--bs-secondary-color);
-        }
-      `}</style>
+          .follow-stats {
+            display: flex;
+            gap: 24px;
+            margin-top: 12px;
+            min-height: 24px;
+          }
+          .follow-stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+          }
+          .follow-stat-count {
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+          }
+          .follow-stat-label {
+            color: var(--bs-secondary-color);
+          }
+        `}</style>
 
       <div className="layout-wrapper layout-content-navbar">
         <div className="layout-container">
