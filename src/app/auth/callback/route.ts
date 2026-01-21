@@ -14,15 +14,13 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error && data.user) {
-      // Check if profile exists
       const { data: profile } = await supabase
         .from("profiles")
-        .select("token")
+        .select("token, user_number")
         .eq("id", data.user.id)
         .single();
 
       if (!profile || !profile.token) {
-        // Try to get a reserved token first
         const { data: reservedToken } = await supabase
           .from("reserved_tokens")
           .select("token")
@@ -39,8 +37,18 @@ export async function GET(request: NextRequest) {
             .update({ is_used: true })
             .eq("token", tokenToAssign);
         } else {
-          // Generate a random token
           tokenToAssign = "VREDEN-" + Math.random().toString(36).substring(2, 15).toUpperCase();
+        }
+
+        let userNumber = profile?.user_number;
+        if (!userNumber) {
+          const { data: maxUserNum } = await supabase
+            .from("profiles")
+            .select("user_number")
+            .order("user_number", { ascending: false })
+            .limit(1)
+            .single();
+          userNumber = (maxUserNum?.user_number || 0) + 1;
         }
 
         await supabase.from("profiles").upsert({
@@ -49,14 +57,28 @@ export async function GET(request: NextRequest) {
           full_name: data.user.user_metadata?.full_name || data.user.user_metadata?.name,
           avatar_url: data.user.user_metadata?.avatar_url,
           token: tokenToAssign,
+          user_number: userNumber,
+          is_verification: false,
         });
       } else {
-        await supabase.from("profiles").upsert({
+        const updateData: Record<string, unknown> = {
           id: data.user.id,
           email: data.user.email,
           full_name: data.user.user_metadata?.full_name || data.user.user_metadata?.name,
           avatar_url: data.user.user_metadata?.avatar_url,
-        });
+        };
+
+        if (!profile.user_number) {
+          const { data: maxUserNum } = await supabase
+            .from("profiles")
+            .select("user_number")
+            .order("user_number", { ascending: false })
+            .limit(1)
+            .single();
+          updateData.user_number = (maxUserNum?.user_number || 0) + 1;
+        }
+
+        await supabase.from("profiles").upsert(updateData);
       }
     }
   }
